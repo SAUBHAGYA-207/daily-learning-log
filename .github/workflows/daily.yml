@@ -1,0 +1,40 @@
+
+name: Daily Learning Log
+
+on:
+  schedule:
+    - cron: "30 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-log:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Record daily activity
+        run: |
+          mkdir -p daily-log
+          DATE=$(date -u +%F)
+          FILE="daily-log/${DATE}.md"
+
+          if [ ! -f "$FILE" ]; then
+            echo "# Daily Learning Log - $DATE" > "$FILE"
+            echo "" >> "$FILE"
+            echo "Record your learning or project progress here." >> "$FILE"
+          fi
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daily-log/
+          if ! git diff --cached --quiet; then
+            git commit -m "Update daily learning log"
+            git push
+          fi
